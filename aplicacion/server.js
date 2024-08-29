@@ -9,7 +9,7 @@ app.use(express.json());
 // Ejecutar comando en la sesión screen
 app.post('/api/minecraft/command', (req, res) => {
     const { command } = req.body;
-    exec(`screen -S Minecraft -p 0 -X stuff "${command}\n"`, (err, stdout, stderr) => {
+    exec(`screen -S Mine -p 0 -X stuff "${command}\n"`, (err, stdout, stderr) => {
         if (err) {
             return res.status(500).send('Error executing command');
         }
