@@ -4,8 +4,9 @@ import React from 'react';
 const Minecraft = () => {
     return (
         <div>
-            <h1>Minecraft Server Management</h1>
-            {/* Aquí puedes añadir componentes específicos para gestionar el servidor de Minecraft */}
+            <h1>Servidor Minecraft</h1>
+            <p>Controla y monitorea tu servidor de Minecraft aquí.</p>
+            {/* Aquí puedes agregar botones y controles para gestionar el servidor */}
         </div>
     );
 };
