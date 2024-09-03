@@ -1,32 +1,44 @@
 // aplicacion/server.js
+const { exec } = require('child_process');
 const express = require('express');
-const { exec, execSync } = require('child_process');
+const http = require('http');
+const WebSocket = require('ws');
+
 const app = express();
-const port = 5000;
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-app.use(express.json());
-
-// Ejecutar comando en la sesión screen
-app.post('/api/minecraft/command', (req, res) => {
-    const { command } = req.body;
-    exec(`screen -S Mine -p 0 -X stuff "${command}\n"`, (err, stdout, stderr) => {
-        if (err) {
-            return res.status(500).send('Error executing command');
+wss.on('connection', (ws) => {
+    console.log('Cliente conectado a WebSocket');
+  
+    ws.on('message', (message) => {
+      console.log(`Comando recibido: ${message}`);
+      exec(`screen -S Minecraft -p 0 -X stuff "${message}\n"`, (error) => {
+        if (error) {
+          console.error(`Error al enviar comando a Minecraft: ${error}`);
+          ws.send(`Error: ${error.message}`);
         }
-        res.send('Command executed');
+      });
     });
-});
-
-// Obtener los logs del servidor
-app.get('/api/minecraft/logs', (req, res) => {
-    exec('tail -n 100 /path/to/minecraft/server/logs/latest.log', (err, stdout, stderr) => {
-        if (err) {
-            return res.status(500).send('Error retrieving logs');
-        }
-        res.send(stdout);
+  
+    const logProcess = exec('tail -f /home/d4rx/PruebaMinecraft/logs/latest.log');
+  
+    logProcess.stdout.on('data', (data) => {
+      console.log(`Datos enviados a cliente: ${data}`);
+      ws.send(data.toString());
     });
-});
+  
+    logProcess.stderr.on('data', (data) => {
+      console.error(`Error de logs: ${data}`);
+      ws.send(`Error: ${data}`);
+    });
+  
+    ws.on('close', () => {
+      console.log('Cliente desconectado');
+    });
+  });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Servidor WebSocket escuchando en el puerto ${PORT}`);
 });
