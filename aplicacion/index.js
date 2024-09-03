@@ -1,30 +1,25 @@
-//!
-//! Archivo Principal del BACK
-//!
+// //!
+// //! Archivo Principal del BACK
+// //!
+
+const PORT = process.env.PORT || 3001;
 const express = require('express');
-const os = require('os');
+const http = require('http');
+const WebSocket = require('ws');
+const minecraftController = require('./controllers/minecraftController');
+const monitorController = require('./controllers/monitorController');
+
 const app = express();
-const port = 3001;
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-app.use(express.json());
+// Rutas para el monitor de recursos
+app.get('/api/system/stats', monitorController.getSystemStats);
 
-// Endpoint para obtener la información del sistema
-app.get('/api/system/stats', (req, res) => {
-    const cpuUsage = os.loadavg(); // Carga de la CPU en 1, 5 y 15 minutos
-    const totalMemory = os.totalmem();
-    const freeMemory = os.freemem();
-    const usedMemory = totalMemory - freeMemory;
-    const memoryUsagePercent = (usedMemory / totalMemory) * 100;
+// WebSocket Minecraft
+minecraftController(wss);
+// require('./controllers/minecraftController')
 
-    // Estimación simple del uso de CPU en porcentaje
-    const cpuUsagePercent = (cpuUsage[0] / os.cpus().length) * 100; // Promedio de 1 minuto
-
-    res.json({
-        cpuUsage: cpuUsagePercent.toFixed(2),
-        memoryUsage: memoryUsagePercent.toFixed(2),
-    });
-});
-
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+server.listen(PORT, () => {
+  console.log(`Servidor WebSocket escuchando en el puerto ${PORT}`);
 });

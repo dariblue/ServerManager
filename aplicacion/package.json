@@ -1,13 +1,13 @@
 {
-  "name": "aplicacion",
-  "version": "1.0.0",
+  "name": "backendserver",
+  "version": " 0.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "D4RX",
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2",

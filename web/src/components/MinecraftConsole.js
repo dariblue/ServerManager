@@ -1,59 +1,51 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const MinecraftConsole = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  let socket;
+  const [socket, setSocket] = useState(null);
+  const [message, setMessage] = useState('');
+  const [consoleOutput, setConsoleOutput] = useState('');
 
   useEffect(() => {
-    // Crear la conexión WebSocket
-    socket = new WebSocket('ws://localhost:5000'); // Cambia localhost por la IP del servidor si es necesario
-  
-    socket.onopen = () => {
-      console.log('WebSocket conectado');
+    const ws = new WebSocket('ws://localhost:3001'); // Asegúrate de usar el puerto correcto
+    ws.onopen = () => {
+      console.log('Conectado al servidor WebSocket');
+      setSocket(ws);
     };
-  
-    socket.onmessage = (event) => {
-      console.log(`Mensaje recibido: ${event.data}`);
-      setMessages((prevMessages) => [...prevMessages, event.data]);
+
+    ws.onmessage = (event) => {
+      setConsoleOutput((prev) => prev + event.data);
     };
-  
-    socket.onerror = (error) => {
-      console.error(`Error en WebSocket: ${error}`);
+
+    ws.onclose = () => {
+      console.log('Desconectado del servidor WebSocket');
+      setSocket(null);
     };
-  
-    socket.onclose = () => {
-      console.log('WebSocket desconectado');
-    };
-  
+
     return () => {
-      socket.close();
+      if (ws) {
+        ws.close();
+      }
     };
   }, []);
 
-  
   const sendCommand = () => {
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(input);
-      setInput('');
+    if (socket) {
+      socket.send(message);
+      setMessage('');
+    } else {
+      console.error('WebSocket no está conectado');
     }
   };
 
   return (
     <div>
-      <h1>Consola de Minecraft</h1>
-      <div style={{ height: '300px', overflowY: 'scroll', border: '1px solid black' }}>
-        {messages.map((message, index) => (
-          <div key={index}>{message}</div>
-        ))}
-      </div>
+      <textarea value={consoleOutput} readOnly rows="30" cols="120" />
+      <br />
       <input
         type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter') sendCommand();
-        }}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Introduce comando"
       />
       <button onClick={sendCommand}>Enviar Comando</button>
     </div>
